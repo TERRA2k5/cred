@@ -1,3 +1,12 @@
-abstract class SDUIEvent {}
+import 'package:equatable/equatable.dart';
 
-class FetchSDUIData extends SDUIEvent {}
+abstract class SDUIEvent extends Equatable {
+  const SDUIEvent();
+
+  @override
+  List<Object?> get props => [];
+}
+
+class FetchSDUIData extends SDUIEvent {
+  const FetchSDUIData();
+}

@@ -22,7 +22,7 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       home: BlocProvider(
         // Fetch the BLoC from get_it and immediately add the fetch event
-        create: (context) => getIt<SDUIBloc>()..add(FetchSDUIData()),
+        create: (context) => getIt<SDUIBloc>()..add(const FetchSDUIData()),
         child: const HomePage(),
       ),
     );
