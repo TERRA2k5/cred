@@ -18,5 +18,12 @@ class SDUIBloc extends Bloc<SDUIEvent, SDUIState> {
         emit(SDUIError(e.toString()));
       }
     });
+
+    on<SwitchStatementTab>((event, emit) {
+      final current = state;
+      if (current is SDUILoaded && current.activeTab != event.tab) {
+        emit(current.copyWith(activeTab: event.tab));
+      }
+    });
   }
 }

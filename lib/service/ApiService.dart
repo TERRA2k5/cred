@@ -5,7 +5,7 @@ import 'package:injectable/injectable.dart';
 
 @injectable
 class MockApiService {
-  static const String endpoint = 'https://api.mocklets.com/p87/card-management';
+  static const String endpoint = 'https://recyclomate-default-rtdb.firebaseio.com/cred-assignment.json';
 
   Future<List<SDUIModel>> fetchScreenComponents() async {
     try {

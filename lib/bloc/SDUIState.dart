@@ -1,3 +1,4 @@
+import 'package:credd/bloc/SDUIEvent.dart';
 import 'package:credd/models/SDUI_model.dart';
 import 'package:equatable/equatable.dart';
 
@@ -14,11 +15,25 @@ class SDUILoading extends SDUIState {
 
 class SDUILoaded extends SDUIState {
   final List<SDUIModel> items;
+  final StatementTab activeTab;
 
-  const SDUILoaded(this.items);
+  const SDUILoaded(
+    this.items, {
+    this.activeTab = StatementTab.totalDue,
+  });
+
+  SDUILoaded copyWith({
+    List<SDUIModel>? items,
+    StatementTab? activeTab,
+  }) {
+    return SDUILoaded(
+      items ?? this.items,
+      activeTab: activeTab ?? this.activeTab,
+    );
+  }
 
   @override
-  List<Object?> get props => [items];
+  List<Object?> get props => [items, activeTab];
 }
 
 class SDUIError extends SDUIState {
