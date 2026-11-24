@@ -1,6 +1,7 @@
 import 'package:cached_network_image/cached_network_image.dart';
 import 'package:credd/Widgets/PromoBannerWidget.dart';
 import 'package:credd/Widgets/TopBarWidget.dart';
+import 'package:credd/Widgets/common/AmountText.dart';
 import 'package:credd/bloc/SDUIBloc.dart';
 import 'package:credd/bloc/SDUIEvent.dart';
 import 'package:credd/bloc/SDUIState.dart';
@@ -57,7 +58,7 @@ class _BalanceHeaderWidgetState extends State<BalanceHeaderWidget> {
       ..showSnackBar(
         SnackBar(
           content: Text(
-            '"$label" tapped (no deeplink in mock response)',
+            '"$label" tapped',
             style: const TextStyle(color: Colors.white),
           ),
           behavior: SnackBarBehavior.floating,
@@ -131,28 +132,6 @@ class _BalanceHeaderWidgetState extends State<BalanceHeaderWidget> {
           ),
         ),
       ],
-    );
-  }
-}
-
-class AmountText extends StatelessWidget {
-  const AmountText(this.text, {super.key, required this.style});
-
-  final String text;
-  final TextStyle style;
-
-  @override
-  Widget build(BuildContext context) {
-    final dot = text.lastIndexOf('.');
-    if (dot < 0) return Text(text, style: style);
-    return Text.rich(
-      TextSpan(
-        style: style,
-        children: [
-          TextSpan(text: text.substring(0, dot)),
-          TextSpan(text: text.substring(dot)),
-        ],
-      ),
     );
   }
 }

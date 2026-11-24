@@ -20,6 +20,12 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'CRED Assessment',
       debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        useMaterial3: true,
+        fontFamily: 'Lexend',
+        scaffoldBackgroundColor: Colors.white,
+        colorScheme: ColorScheme.fromSeed(seedColor: Colors.black, surface: Colors.white),
+      ),
       home: BlocProvider(
         // Fetch the BLoC from get_it and immediately add the fetch event
         create: (context) => getIt<SDUIBloc>()..add(const FetchSDUIData()),

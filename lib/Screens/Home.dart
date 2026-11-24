@@ -1,7 +1,9 @@
 import 'package:credd/Registry/SDUI_registry.dart';
+import 'package:credd/Widgets/cards/CreditCardItemView.dart';
 import 'package:credd/bloc/SDUIBloc.dart';
 import 'package:credd/bloc/SDUIEvent.dart';
 import 'package:credd/bloc/SDUIState.dart';
+import 'package:credd/models/CreditCardModel.dart';
 import 'package:credd/models/SDUI_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -76,21 +78,21 @@ class HomePage extends StatelessWidget {
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
           ...linearWidgets,
-          if (cardStackData.isNotEmpty)
-            Container(
-              margin: const EdgeInsets.all(16.0),
-              padding: const EdgeInsets.all(24.0),
-              alignment: Alignment.center,
-              decoration: BoxDecoration(
-                color: const Color(0xFFF7F5F2),
-                borderRadius: BorderRadius.circular(12),
-                border: Border.all(color: Colors.black12),
-              ),
-              child: Text(
-                'Interactive Card Stack (${cardStackData.length} cards received)',
-                style: const TextStyle(color: Colors.black87),
+          const SizedBox(height: 12),
+          for (var i = 0; i < cardStackData.length; i++)
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
+              child: AspectRatio(
+                aspectRatio: 1244 / 716,
+                child: CreditCardItemView(
+                  card: CreditCardModel.fromJson(
+                    cardStackData[i].templateProperties,
+                    fallbackId: 'card_$i',
+                  ),
+                ),
               ),
             ),
+          const SizedBox(height: 32),
         ],
       ),
     );
