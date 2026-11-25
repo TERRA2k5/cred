@@ -1,3 +1,4 @@
+import 'package:credd/models/CardPillModel.dart';
 import 'package:equatable/equatable.dart';
 
 class CreditCardModel extends Equatable {
@@ -10,6 +11,7 @@ class CreditCardModel extends Equatable {
   final String? amountText;
   final String? dueText;
   final String payCtaTitle;
+  final List<CardPillModel> pills;
   final bool isLight;
 
   const CreditCardModel({
@@ -22,6 +24,7 @@ class CreditCardModel extends Equatable {
     this.amountText,
     this.dueText,
     this.payCtaTitle = 'Pay now',
+    this.pills = const [],
     this.isLight = false,
   });
 
@@ -71,6 +74,15 @@ class CreditCardModel extends Equatable {
         ? statement['text_2'] as String
         : null;
 
+    final rawPills = body['flipper_pill'] is List
+        ? body['flipper_pill'] as List
+        : const [];
+    final pills = rawPills
+        .whereType<Map<String, dynamic>>()
+        .map(CardPillModel.fromJson)
+        .toList()
+      ..sort((a, b) => b.priority.compareTo(a.priority));
+
     return CreditCardModel(
       id: id,
       artUrl: artUrl,
@@ -81,6 +93,7 @@ class CreditCardModel extends Equatable {
       amountText: amount,
       dueText: due,
       payCtaTitle: payTitle,
+      pills: List.unmodifiable(pills),
       isLight: body['is_light'] == true,
     );
   }
@@ -96,6 +109,7 @@ class CreditCardModel extends Equatable {
         amountText,
         dueText,
         payCtaTitle,
+        pills,
         isLight,
       ];
 }

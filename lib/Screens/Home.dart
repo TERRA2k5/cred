@@ -1,4 +1,5 @@
 import 'package:credd/Registry/SDUI_registry.dart';
+import 'package:credd/Widgets/cards/ActionBadgePill.dart';
 import 'package:credd/Widgets/cards/CreditCardItemView.dart';
 import 'package:credd/bloc/SDUIBloc.dart';
 import 'package:credd/bloc/SDUIEvent.dart';
@@ -80,19 +81,34 @@ class HomePage extends StatelessWidget {
           ...linearWidgets,
           const SizedBox(height: 12),
           for (var i = 0; i < cardStackData.length; i++)
-            Padding(
-              padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
-              child: AspectRatio(
-                aspectRatio: 1244 / 716,
-                child: CreditCardItemView(
-                  card: CreditCardModel.fromJson(
-                    cardStackData[i].templateProperties,
-                    fallbackId: 'card_$i',
-                  ),
-                ),
+            _buildCardItem(cardStackData[i], i),
+          const SizedBox(height: 32),
+        ],
+      ),
+    );
+  }
+
+  Widget _buildCardItem(SDUIModel item, int index) {
+    final card = CreditCardModel.fromJson(
+      item.templateProperties,
+      fallbackId: 'card_$index',
+    );
+    return Padding(
+      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          AspectRatio(
+            aspectRatio: 1244 / 716,
+            child: CreditCardItemView(card: card),
+          ),
+          if (index == 0 && card.pills.isNotEmpty)
+            SizedBox(
+              height: 44.0,
+              child: Center(
+                child: ActionBadgePill(pills: card.pills),
               ),
             ),
-          const SizedBox(height: 32),
         ],
       ),
     );
