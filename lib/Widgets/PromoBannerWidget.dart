@@ -42,7 +42,7 @@ class PromoBannerWidget extends StatelessWidget {
             ..hideCurrentSnackBar()
             ..showSnackBar(
               const SnackBar(
-                content: Text('Offer tapped (no deeplink in mock response)'),
+                content: Text('Offer tapped'),
                 behavior: SnackBarBehavior.floating,
                 duration: Duration(milliseconds: 1500),
               ),
@@ -52,14 +52,7 @@ class PromoBannerWidget extends StatelessWidget {
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(
             color: Colors.white.withValues(alpha: 0.85),
-            borderRadius: BorderRadius.circular(16),
-            boxShadow: const [
-              BoxShadow(
-                color: Color(0x14000000),
-                blurRadius: 4,
-                offset: Offset(0, 1),
-              ),
-            ],
+            borderRadius: BorderRadius.vertical(top: Radius.circular(8)),
           ),
           child: Row(
             mainAxisSize: MainAxisSize.min,

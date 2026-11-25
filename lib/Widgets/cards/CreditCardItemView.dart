@@ -20,7 +20,7 @@ class CreditCardItemView extends StatelessWidget {
     gradient: LinearGradient(
       begin: Alignment.topCenter,
       end: Alignment.bottomCenter,
-      stops: [0, 0.015, 0.04, 0.93, 0.975, 1],
+      stops: [0,0.05,0.3,0.8,0.9, 1],
       colors: [
         Color(0x66FFFFFF),
         Color(0x26FFFFFF),
@@ -66,7 +66,7 @@ class CreditCardItemView extends StatelessWidget {
                     children: [
                       Positioned(
                         left: inset,
-                        top: h * 0.215,
+                        top: h * 0.3,
                         child: Text(
                           card.maskedNumber,
                           style: TextStyle(

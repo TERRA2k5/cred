@@ -160,15 +160,15 @@ class _TopBarWidgetState extends State<TopBarWidget> {
 
   Widget _buildHeaderIcon(String url, IconData fallback) {
     return SizedBox.square(
-      dimension: 32,
+      dimension: 40,
       child: url.isEmpty
-          ? Icon(fallback, size: 22, color: Colors.black87)
+          ? Icon(fallback, size: 32, color: Colors.black87)
           : Padding(
               padding: const EdgeInsets.all(4),
               child: CachedNetworkImage(
                 imageUrl: url,
                 fit: BoxFit.contain,
-                errorWidget: (_, _, _) => Icon(fallback, size: 22, color: Colors.black87),
+                errorWidget: (_, _, _) => Icon(fallback, size: 32, color: Colors.black87),
               ),
             ),
     );
@@ -184,10 +184,10 @@ class _TopBarWidgetState extends State<TopBarWidget> {
       onTap: onTap,
       child: AnimatedContainer(
         duration: const Duration(milliseconds: 200),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 7),
+        padding: const EdgeInsets.symmetric(horizontal: 20, vertical: 10),
         decoration: BoxDecoration(
           color: selected ? Colors.white : Colors.transparent,
-          borderRadius: BorderRadius.circular(17),
+          borderRadius: BorderRadius.circular(20),
           boxShadow: selected
               ? const [BoxShadow(color: Color(0x14000000), blurRadius: 6, offset: Offset(0, 2))]
               : null,
@@ -205,7 +205,7 @@ class _TopBarWidgetState extends State<TopBarWidget> {
               ),
             ),
             if (badge > 0) ...[
-              const SizedBox(width: 5),
+              const SizedBox(width: 8),
               Container(
                 width: 14,
                 height: 14,

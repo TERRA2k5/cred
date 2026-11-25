@@ -98,9 +98,10 @@ class _BalanceHeaderWidgetState extends State<BalanceHeaderWidget> {
         SafeArea(
           bottom: false,
           child: Padding(
-            padding: const EdgeInsets.fromLTRB(16, 8, 16, 14),
+            padding: const EdgeInsets.symmetric(horizontal: 16),
             child: Column(
               children: [
+                SizedBox(height: 80,),
                 TopBarWidget(
                   leftIconUrl: _header.leftIconUrl,
                   rightIconUrl: _header.rightIconUrl,
@@ -114,7 +115,7 @@ class _BalanceHeaderWidgetState extends State<BalanceHeaderWidget> {
                     );
                   },
                 ),
-                const SizedBox(height: 18),
+                const SizedBox(height: 20),
                 AnimatedSwitcher(
                   duration: const Duration(milliseconds: 200),
                   child: _SummaryBlock(
@@ -171,7 +172,7 @@ class _SummaryBlock extends StatelessWidget {
                   fontFamily: 'BodoniModa',
                   letterSpacing: 1.2,
                   fontSize: 30,
-                  fontWeight: FontWeight.w500,
+                  fontWeight: FontWeight.bold,
                   color: Colors.black,
                 ),
               ),

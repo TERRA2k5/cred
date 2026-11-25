@@ -1,6 +1,8 @@
 import 'package:credd/Registry/SDUI_registry.dart';
 import 'package:credd/Widgets/cards/ActionBadgePill.dart';
 import 'package:credd/Widgets/cards/CreditCardItemView.dart';
+import 'package:credd/Widgets/deck/DeckGeometryCalculator.dart';
+import 'package:credd/Widgets/deck/DeckTransformFlowDelegate.dart';
 import 'package:credd/bloc/SDUIBloc.dart';
 import 'package:credd/bloc/SDUIEvent.dart';
 import 'package:credd/bloc/SDUIState.dart';
@@ -64,53 +66,61 @@ class HomePage extends StatelessWidget {
 
   Widget _buildSDUILayout(List<SDUIModel> items) {
     final linearWidgets = <Widget>[];
-    final cardStackData = <SDUIModel>[];
+    final cards = <CreditCardModel>[];
 
     for (final item in items) {
       if (item.templateName == 'cm_card_instrument') {
-        cardStackData.add(item);
+        cards.add(
+          CreditCardModel.fromJson(
+            item.templateProperties,
+            fallbackId: 'card_${cards.length}',
+          ),
+        );
       } else {
         linearWidgets.add(SDUIRegistry.buildComponent(item));
       }
     }
 
-    return SingleChildScrollView(
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          ...linearWidgets,
-          const SizedBox(height: 12),
-          for (var i = 0; i < cardStackData.length; i++)
-            _buildCardItem(cardStackData[i], i),
-          const SizedBox(height: 32),
-        ],
-      ),
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        ...linearWidgets,
+        Expanded(
+          child: cards.isEmpty
+              ? const Center(child: Text('No cards added yet'))
+              : _buildCardDeck(cards),
+        ),
+      ],
     );
   }
 
-  Widget _buildCardItem(SDUIModel item, int index) {
-    final card = CreditCardModel.fromJson(
-      item.templateProperties,
-      fallbackId: 'card_$index',
-    );
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 10.0),
-      child: Column(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          AspectRatio(
-            aspectRatio: 1244 / 716,
-            child: CreditCardItemView(card: card),
+  Widget _buildCardDeck(List<CreditCardModel> cards) {
+    return LayoutBuilder(
+      builder: (context, constraints) {
+        final geometry = DeckGeometryCalculator(
+          width: constraints.maxWidth,
+          viewportHeight: constraints.maxHeight,
+          count: cards.length,
+        );
+
+        return RepaintBoundary(
+          child: Flow(
+            delegate: DeckTransformFlowDelegate(geometry: geometry),
+            children: [
+              for (var i = 0; i < cards.length; i++)
+                RepaintBoundary(
+                  key: ValueKey('card_$i'),
+                  child: CreditCardItemView(card: cards[i]),
+                ),
+              for (var i = 0; i < cards.length; i++)
+                RepaintBoundary(
+                  key: ValueKey('pill_$i'),
+                  child: Center(child: ActionBadgePill(pills: cards[i].pills)),
+                ),
+            ],
           ),
-          if (index == 0 && card.pills.isNotEmpty)
-            SizedBox(
-              height: 44.0,
-              child: Center(
-                child: ActionBadgePill(pills: card.pills),
-              ),
-            ),
-        ],
-      ),
+        );
+      },
     );
   }
 }
