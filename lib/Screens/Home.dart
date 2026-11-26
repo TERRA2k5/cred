@@ -1,8 +1,5 @@
 import 'package:credd/Registry/SDUI_registry.dart';
-import 'package:credd/Widgets/cards/ActionBadgePill.dart';
-import 'package:credd/Widgets/cards/CreditCardItemView.dart';
-import 'package:credd/Widgets/deck/DeckGeometryCalculator.dart';
-import 'package:credd/Widgets/deck/DeckTransformFlowDelegate.dart';
+import 'package:credd/Widgets/deck/InteractiveCardDeck.dart';
 import 'package:credd/bloc/SDUIBloc.dart';
 import 'package:credd/bloc/SDUIEvent.dart';
 import 'package:credd/bloc/SDUIState.dart';
@@ -88,39 +85,9 @@ class HomePage extends StatelessWidget {
         Expanded(
           child: cards.isEmpty
               ? const Center(child: Text('No cards added yet'))
-              : _buildCardDeck(cards),
+              : InteractiveCardDeck(cards: cards),
         ),
       ],
-    );
-  }
-
-  Widget _buildCardDeck(List<CreditCardModel> cards) {
-    return LayoutBuilder(
-      builder: (context, constraints) {
-        final geometry = DeckGeometryCalculator(
-          width: constraints.maxWidth,
-          viewportHeight: constraints.maxHeight,
-          count: cards.length,
-        );
-
-        return RepaintBoundary(
-          child: Flow(
-            delegate: DeckTransformFlowDelegate(geometry: geometry),
-            children: [
-              for (var i = 0; i < cards.length; i++)
-                RepaintBoundary(
-                  key: ValueKey('card_$i'),
-                  child: CreditCardItemView(card: cards[i]),
-                ),
-              for (var i = 0; i < cards.length; i++)
-                RepaintBoundary(
-                  key: ValueKey('pill_$i'),
-                  child: Center(child: ActionBadgePill(pills: cards[i].pills)),
-                ),
-            ],
-          ),
-        );
-      },
     );
   }
 }
