@@ -4,6 +4,7 @@ import 'package:credd/Widgets/cards/ActionBadgePill.dart';
 import 'package:credd/Widgets/cards/CreditCardItemView.dart';
 import 'package:credd/Widgets/deck/DeckGeometryCalculator.dart';
 import 'package:credd/Widgets/deck/DeckTransformFlowDelegate.dart';
+import 'package:credd/Widgets/deck/QuickActionMatrix.dart';
 import 'package:credd/models/CardPillModel.dart';
 import 'package:credd/models/CreditCardModel.dart';
 import 'package:flutter/foundation.dart';
@@ -22,7 +23,7 @@ class InteractiveCardDeck extends StatefulWidget {
 }
 
 class _InteractiveCardDeckState extends State<InteractiveCardDeck>
-    with SingleTickerProviderStateMixin {
+    with TickerProviderStateMixin {
   static const _snapDuration = Duration(milliseconds: 320);
 
   final _scroll = ScrollController();
@@ -31,9 +32,17 @@ class _InteractiveCardDeckState extends State<InteractiveCardDeck>
     duration: const Duration(milliseconds: 350),
     value: 1.0,
   );
+  late final AnimationController _swipe = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 380),
+  )..addStatusListener(_onSwipeStatus);
+
   final _pillStep = ValueNotifier<int>(0);
   Timer? _pillTimer;
   DeckGeometryCalculator? _geometry;
+  bool _swipeOpen = false;
+
+  bool get _atRest => !_scroll.hasClients || _scroll.offset <= 0;
 
   @override
   void initState() {
@@ -55,6 +64,7 @@ class _InteractiveCardDeckState extends State<InteractiveCardDeck>
   void dispose() {
     _pillTimer?.cancel();
     _pillFlip.dispose();
+    _swipe.dispose();
     _pillStep.dispose();
     _scroll.dispose();
     super.dispose();
@@ -80,10 +90,42 @@ class _InteractiveCardDeckState extends State<InteractiveCardDeck>
     });
   }
 
+  void _onSwipeStatus(AnimationStatus status) {
+    final open = status != AnimationStatus.dismissed;
+    if (open == _swipeOpen) return;
+    setState(() {
+      _swipeOpen = open;
+    });
+  }
+
+  void _settleSwipe({required bool open}) {
+    if (open) {
+      _swipe.animateTo(1, curve: Curves.easeOut);
+    } else {
+      _swipe.animateBack(0, curve: Curves.easeOut);
+    }
+  }
+
+  void _onSwipeUpdate(DragUpdateDetails details) {
+    final geometry = _geometry;
+    if (geometry == null || !_atRest) return;
+    _swipe.value -= (details.primaryDelta ?? 0) / (geometry.cardWidth * 0.7);
+  }
+
+  void _onSwipeEnd(DragEndDetails details) {
+    if (!_atRest) return;
+    final velocity = details.primaryVelocity ?? 0;
+    final open =
+        velocity < -300 || (velocity.abs() <= 300 && _swipe.value > 0.4);
+    _settleSwipe(open: open);
+  }
+
   void _onCardTap(int index) {
     final geometry = _geometry;
     if (geometry == null || !_scroll.hasClients) return;
-    if (index > 0 && geometry.expandProgress(_scroll.offset) == 0) {
+    if (_swipe.value > 0) {
+      _settleSwipe(open: false);
+    } else if (index > 0 && geometry.expandProgress(_scroll.offset) == 0) {
       _scroll.animateTo(
         geometry.expandDistance,
         duration: _snapDuration,
@@ -127,12 +169,15 @@ class _InteractiveCardDeckState extends State<InteractiveCardDeck>
           child: SingleChildScrollView(
             key: const Key('card_stack_scroll'),
             controller: _scroll,
-            physics: const ClampingScrollPhysics(),
+            physics: _swipeOpen
+                ? const NeverScrollableScrollPhysics()
+                : const ClampingScrollPhysics(),
             child: RepaintBoundary(
               child: Flow(
                 delegate: DeckTransformFlowDelegate(
                   geometry: geometry,
                   scroll: _scroll,
+                  swipe: _swipe,
                 ),
                 children: [
                   for (var i = 0; i < cards.length; i++)
@@ -140,6 +185,8 @@ class _InteractiveCardDeckState extends State<InteractiveCardDeck>
                       key: ValueKey('card_$i'),
                       child: GestureDetector(
                         onTap: () => _onCardTap(i),
+                        onHorizontalDragUpdate: i == 0 ? _onSwipeUpdate : null,
+                        onHorizontalDragEnd: i == 0 ? _onSwipeEnd : null,
                         child: CreditCardItemView(card: cards[i]),
                       ),
                     ),
@@ -154,6 +201,12 @@ class _InteractiveCardDeckState extends State<InteractiveCardDeck>
                         ),
                       ),
                     ),
+                  RepaintBoundary(
+                    key: const Key('action_grid'),
+                    child: QuickActionMatrix(
+                      swipe: _swipe,
+                    ),
+                  ),
                 ],
               ),
             ),

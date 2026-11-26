@@ -16,21 +16,6 @@ class CreditCardItemView extends StatelessWidget {
   final bool showShadow;
 
   static const _radius = BorderRadius.all(Radius.circular(12));
-  static const _bevel = BoxDecoration(
-    gradient: LinearGradient(
-      begin: Alignment.topCenter,
-      end: Alignment.bottomCenter,
-      stops: [0,0.05,0.3,0.8,0.9, 1],
-      colors: [
-        Color(0x66FFFFFF),
-        Color(0x26FFFFFF),
-        Color(0x00FFFFFF),
-        Color(0x00000000),
-        Color(0x26000000),
-        Color(0x66000000),
-      ],
-    ),
-  );
   static const _shadow = [
     BoxShadow(color: Color(0x33000000), blurRadius: 18, offset: Offset(0, 8)),
   ];
@@ -59,7 +44,6 @@ class CreditCardItemView extends StatelessWidget {
                   placeholder: (_, _) => const ColoredBox(color: Color(0xFF2E2E30)),
                   errorWidget: (_, _, _) => const ColoredBox(color: Color(0xFF2E2E30)),
                 ),
-                const IgnorePointer(child: DecoratedBox(decoration: _bevel)),
                 FadeTransition(
                   opacity: detailsOpacity,
                   child: Stack(
