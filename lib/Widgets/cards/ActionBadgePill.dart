@@ -1,7 +1,7 @@
 import 'dart:ui' show lerpDouble;
 
 import 'package:cached_network_image/cached_network_image.dart';
-import 'package:credd/Widgets/common/AmountText.dart';
+import 'package:credd/Widgets/common/CtaFeedback.dart';
 import 'package:credd/core/utils/MarkupParser.dart';
 import 'package:credd/models/CardPillModel.dart';
 import 'package:flutter/foundation.dart';

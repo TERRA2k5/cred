@@ -4,7 +4,6 @@ import 'package:credd/Widgets/sheets/CardInspectorModal.dart';
 import 'package:credd/bloc/SDUIBloc.dart';
 import 'package:credd/bloc/SDUIEvent.dart';
 import 'package:credd/bloc/SDUIState.dart';
-import 'package:credd/models/CreditCardModel.dart';
 import 'package:credd/models/SDUI_model.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
@@ -77,17 +76,27 @@ class _SDUIContentViewState extends State<_SDUIContentView>
   late final AnimationController _detail;
   final _rootKey = GlobalKey();
 
+  late SDUIScreenPartition _partition;
   int? _detailIndex;
   Rect? _detailSource;
 
   @override
   void initState() {
     super.initState();
+    _partition = SDUIRegistry.partition(widget.items);
     _detail = AnimationController(
       vsync: this,
       duration: const Duration(milliseconds: 480),
       reverseDuration: const Duration(milliseconds: 380),
     );
+  }
+
+  @override
+  void didUpdateWidget(covariant _SDUIContentView oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (oldWidget.items != widget.items) {
+      _partition = SDUIRegistry.partition(widget.items);
+    }
   }
 
   @override
@@ -121,21 +130,7 @@ class _SDUIContentViewState extends State<_SDUIContentView>
 
   @override
   Widget build(BuildContext context) {
-    final linearWidgets = <Widget>[];
-    final cards = <CreditCardModel>[];
-
-    for (final item in widget.items) {
-      if (item.templateName == 'cm_card_instrument') {
-        cards.add(
-          CreditCardModel.fromJson(
-            item.templateProperties,
-            fallbackId: 'card_${cards.length}',
-          ),
-        );
-      } else {
-        linearWidgets.add(SDUIRegistry.buildComponent(item));
-      }
-    }
+    final cards = _partition.cards;
 
     final activeDetailIndex =
         _detailIndex != null && _detailIndex! < cards.length
@@ -153,7 +148,8 @@ class _SDUIContentViewState extends State<_SDUIContentView>
           Column(
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              ...linearWidgets,
+              for (final item in _partition.headerItems)
+                SDUIRegistry.buildComponent(item),
               Expanded(
                 child: cards.isEmpty
                     ? const Center(child: Text('No cards added yet'))

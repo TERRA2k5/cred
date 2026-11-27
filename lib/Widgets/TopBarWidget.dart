@@ -1,4 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:credd/Widgets/common/CtaFeedback.dart';
+import 'package:credd/core/utils/JsonExt.dart';
 import 'package:flutter/material.dart';
 
 class TopBarWidget extends StatefulWidget {
@@ -22,57 +24,6 @@ class TopBarWidget extends StatefulWidget {
     this.selectedIndex = 0,
     this.onTabSelected,
   });
-
-  factory TopBarWidget.fromData(
-    Map<String, dynamic> data, {
-    int selectedIndex = 0,
-    ValueChanged<int>? onTabSelected,
-  }) {
-    final body = data['body'] is Map<String, dynamic>
-        ? data['body'] as Map<String, dynamic>
-        : data;
-
-    final cta1 = body['cta_1'] is Map<String, dynamic>
-        ? body['cta_1'] as Map<String, dynamic>
-        : const <String, dynamic>{};
-    final cta1Asset = cta1['asset'] is Map<String, dynamic>
-        ? cta1['asset'] as Map<String, dynamic>
-        : const <String, dynamic>{};
-    final leftUrl = cta1Asset['url'] is String ? cta1Asset['url'] as String : '';
-
-    final cta2 = body['cta_2'] is Map<String, dynamic>
-        ? body['cta_2'] as Map<String, dynamic>
-        : const <String, dynamic>{};
-    final cta2Asset = cta2['asset'] is Map<String, dynamic>
-        ? cta2['asset'] as Map<String, dynamic>
-        : const <String, dynamic>{};
-    final rightUrl = cta2Asset['url'] is String ? cta2Asset['url'] as String : '';
-
-    final statement = body['statement'] is Map<String, dynamic>
-        ? body['statement'] as Map<String, dynamic>
-        : const <String, dynamic>{};
-    final unbilled = body['unbilled'] is Map<String, dynamic>
-        ? body['unbilled'] as Map<String, dynamic>
-        : const <String, dynamic>{};
-
-    final leftLabel = statement['text_3'] is String && (statement['text_3'] as String).isNotEmpty
-        ? statement['text_3'] as String
-        : 'TOTAL DUE';
-    final rightLabel = unbilled['text_3'] is String && (unbilled['text_3'] as String).isNotEmpty
-        ? unbilled['text_3'] as String
-        : 'RECENT SPENDS';
-    final badge = statement['due_count'] is num ? (statement['due_count'] as num).toInt() : 0;
-
-    return TopBarWidget(
-      leftIconUrl: leftUrl,
-      rightIconUrl: rightUrl,
-      leftLabel: leftLabel,
-      rightLabel: rightLabel,
-      badgeCount: badge,
-      selectedIndex: selectedIndex,
-      onTabSelected: onTabSelected,
-    );
-  }
 
   @override
   State<TopBarWidget> createState() => _TopBarWidgetState();
@@ -103,9 +54,7 @@ class _TopBarWidgetState extends State<TopBarWidget> {
   @override
   Widget build(BuildContext context) {
     if (widget.data != null) {
-      final body = widget.data!['body'] is Map<String, dynamic>
-          ? widget.data!['body'] as Map<String, dynamic>
-          : widget.data!;
+      final body = widget.data!.bodyOrSelf;
       final hasStatement = body.containsKey('statement') || body.containsKey('unbilled');
       if (!hasStatement) {
         return const SizedBox.shrink();
@@ -120,7 +69,7 @@ class _TopBarWidgetState extends State<TopBarWidget> {
 
     return Row(
       children: [
-        _buildHeaderIcon(effectiveLeftUrl, Icons.percent_rounded),
+        _buildHeaderIcon(effectiveLeftUrl, Icons.percent_rounded, 'offers'),
         Expanded(
           child: Center(
             child: FittedBox(
@@ -153,24 +102,28 @@ class _TopBarWidgetState extends State<TopBarWidget> {
             ),
           ),
         ),
-        _buildHeaderIcon(effectiveRightUrl, Icons.settings_outlined),
+        _buildHeaderIcon(effectiveRightUrl, Icons.settings_outlined, 'settings'),
       ],
     );
   }
 
-  Widget _buildHeaderIcon(String url, IconData fallback) {
-    return SizedBox.square(
-      dimension: 40,
-      child: url.isEmpty
-          ? Icon(fallback, size: 32, color: Colors.black87)
-          : Padding(
-              padding: const EdgeInsets.all(4),
-              child: CachedNetworkImage(
-                imageUrl: url,
-                fit: BoxFit.contain,
-                errorWidget: (_, _, _) => Icon(fallback, size: 32, color: Colors.black87),
+  Widget _buildHeaderIcon(String url, IconData fallback, String label) {
+    return GestureDetector(
+      behavior: HitTestBehavior.opaque,
+      onTap: () => showCtaFeedback(context, label),
+      child: SizedBox.square(
+        dimension: 40,
+        child: url.isEmpty
+            ? Icon(fallback, size: 32, color: Colors.black87)
+            : Padding(
+                padding: const EdgeInsets.all(4),
+                child: CachedNetworkImage(
+                  imageUrl: url,
+                  fit: BoxFit.contain,
+                  errorWidget: (_, _, _) => Icon(fallback, size: 32, color: Colors.black87),
+                ),
               ),
-            ),
+      ),
     );
   }
 

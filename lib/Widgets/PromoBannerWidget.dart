@@ -1,4 +1,6 @@
 import 'package:cached_network_image/cached_network_image.dart';
+import 'package:credd/Widgets/common/CtaFeedback.dart';
+import 'package:credd/core/utils/JsonExt.dart';
 import 'package:credd/core/utils/MarkupParser.dart';
 import 'package:flutter/material.dart';
 
@@ -9,25 +11,16 @@ class PromoBannerWidget extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final body = data['body'] is Map<String, dynamic>
-        ? data['body'] as Map<String, dynamic>
-        : data;
+    final body = data.bodyOrSelf;
+    final iconUrl = body.assetUrl('asset');
 
-    final asset = body['asset'] is Map<String, dynamic>
-        ? body['asset'] as Map<String, dynamic>
-        : const <String, dynamic>{};
-    final iconUrl = asset['url'] is String ? asset['url'] as String : '';
+    final flipperList = body.list('flipper_config');
+    final firstItem =
+        flipperList.isNotEmpty && flipperList.first is Map<String, dynamic>
+            ? flipperList.first as Map<String, dynamic>
+            : const <String, dynamic>{};
 
-    final flipperList = body['flipper_config'] is List
-        ? body['flipper_config'] as List
-        : const [];
-    final firstItem = flipperList.isNotEmpty && flipperList.first is Map<String, dynamic>
-        ? flipperList.first as Map<String, dynamic>
-        : const <String, dynamic>{};
-
-    final rawText = firstItem['text_1'] is String
-        ? firstItem['text_1'] as String
-        : (body['text_1'] is String ? body['text_1'] as String : '');
+    final rawText = firstItem.str('text_1', body.str('text_1'));
 
     if (rawText.isEmpty && iconUrl.isEmpty) {
       return const SizedBox.shrink();
@@ -37,17 +30,7 @@ class PromoBannerWidget extends StatelessWidget {
 
     return Center(
       child: GestureDetector(
-        onTap: () {
-          ScaffoldMessenger.of(context)
-            ..hideCurrentSnackBar()
-            ..showSnackBar(
-              const SnackBar(
-                content: Text('Offer tapped'),
-                behavior: SnackBarBehavior.floating,
-                duration: Duration(milliseconds: 1500),
-              ),
-            );
-        },
+        onTap: () => showCtaFeedback(context, 'Offer'),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
           decoration: BoxDecoration(

@@ -1,3 +1,4 @@
+import 'package:credd/core/utils/JsonExt.dart';
 import 'package:credd/models/CardPillModel.dart';
 import 'package:equatable/equatable.dart';
 
@@ -28,71 +29,30 @@ class CreditCardModel extends Equatable {
     this.isLight = false,
   });
 
-  factory CreditCardModel.fromJson(Map<String, dynamic> json, {String? fallbackId}) {
-    final body = json['body'] is Map<String, dynamic>
-        ? json['body'] as Map<String, dynamic>
-        : json;
+  factory CreditCardModel.fromJson(
+    Map<String, dynamic> json, {
+    String? fallbackId,
+  }) {
+    final body = json.bodyOrSelf;
+    final statement = body.nested('statement');
 
-    final asset1 = body['asset_1'] is Map<String, dynamic>
-        ? body['asset_1'] as Map<String, dynamic>
-        : const <String, dynamic>{};
-    final artUrl = asset1['url'] is String ? asset1['url'] as String : '';
-
-    final asset3 = body['asset_3'] is Map<String, dynamic>
-        ? body['asset_3'] as Map<String, dynamic>
-        : const <String, dynamic>{};
-    final miniArtUrl = asset3['url'] is String ? asset3['url'] as String : '';
-
-    final asset2 = body['asset_2'] is Map<String, dynamic>
-        ? body['asset_2'] as Map<String, dynamic>
-        : const <String, dynamic>{};
-    final logoUrl = asset2['url'] is String ? asset2['url'] as String : '';
-
-    final statement = body['statement'] is Map<String, dynamic>
-        ? body['statement'] as Map<String, dynamic>
-        : const <String, dynamic>{};
-
-    final statementCta = statement['cta_1'] is Map<String, dynamic>
-        ? statement['cta_1'] as Map<String, dynamic>
-        : const <String, dynamic>{};
-    final payTitle = statementCta['title'] is String && (statementCta['title'] as String).isNotEmpty
-        ? statementCta['title'] as String
-        : 'Pay now';
-
-    final id = body['instrument_id'] is String && (body['instrument_id'] as String).isNotEmpty
-        ? body['instrument_id'] as String
-        : (fallbackId ?? 'card_0');
-
-    final masked = body['text_3'] is String ? body['text_3'] as String : '';
-    final holder = body['text_4'] is String ? body['text_4'] as String : '';
-
-    final amount = statement['text_1'] is String && (statement['text_1'] as String).isNotEmpty
-        ? statement['text_1'] as String
-        : null;
-
-    final due = statement['text_2'] is String && (statement['text_2'] as String).isNotEmpty
-        ? statement['text_2'] as String
-        : null;
-
-    final rawPills = body['flipper_pill'] is List
-        ? body['flipper_pill'] as List
-        : const [];
-    final pills = rawPills
+    final pills = body
+        .list('flipper_pill')
         .whereType<Map<String, dynamic>>()
         .map(CardPillModel.fromJson)
         .toList()
       ..sort((a, b) => b.priority.compareTo(a.priority));
 
     return CreditCardModel(
-      id: id,
-      artUrl: artUrl,
-      miniArtUrl: miniArtUrl,
-      networkLogoUrl: logoUrl.isNotEmpty ? logoUrl : null,
-      maskedNumber: masked,
-      holderName: holder,
-      amountText: amount,
-      dueText: due,
-      payCtaTitle: payTitle,
+      id: body.str('instrument_id', fallbackId ?? 'card_0'),
+      artUrl: body.assetUrl('asset_1'),
+      miniArtUrl: body.assetUrl('asset_3'),
+      networkLogoUrl: body.nested('asset_2').strOrNull('url'),
+      maskedNumber: body.str('text_3'),
+      holderName: body.str('text_4'),
+      amountText: statement.strOrNull('text_1'),
+      dueText: statement.strOrNull('text_2'),
+      payCtaTitle: statement.nested('cta_1').str('title', 'Pay now'),
       pills: List.unmodifiable(pills),
       isLight: body['is_light'] == true,
     );

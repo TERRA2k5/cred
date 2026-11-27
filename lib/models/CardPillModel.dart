@@ -1,3 +1,4 @@
+import 'package:credd/core/utils/JsonExt.dart';
 import 'package:credd/core/utils/MarkupParser.dart';
 import 'package:equatable/equatable.dart';
 
@@ -19,18 +20,10 @@ class CardPillModel extends Equatable {
   final String? iconUrl;
 
   factory CardPillModel.fromJson(Map<String, dynamic> json) {
-    final cta = json['cta_1'] is Map<String, dynamic>
-        ? json['cta_1'] as Map<String, dynamic>
-        : const <String, dynamic>{};
-
-    final asset = cta['asset'] is Map<String, dynamic>
-        ? cta['asset'] as Map<String, dynamic>
-        : const <String, dynamic>{};
-
-    final rawTitle = cta['title'] is String ? cta['title'] as String : '';
-    final rawIconUrl = asset['url'] is String ? asset['url'] as String : '';
-    final durationMs = json['duration'] is num ? (json['duration'] as num).toInt() : 0;
-    final priority = json['priority'] is num ? (json['priority'] as num).toInt() : 0;
+    final cta = json.nested('cta_1');
+    final rawTitle = cta.str('title');
+    final durationMs = json.integer('duration');
+    final priority = json.integer('priority');
 
     final type = switch (json['type']) {
       'pending_action' => PillType.pendingAction,
@@ -43,7 +36,7 @@ class CardPillModel extends Equatable {
       title: MarkupParser.parse(rawTitle),
       priority: priority,
       duration: Duration(milliseconds: durationMs > 0 ? durationMs : 1000),
-      iconUrl: rawIconUrl.isEmpty ? null : rawIconUrl,
+      iconUrl: cta.nested('asset').strOrNull('url'),
     );
   }
 

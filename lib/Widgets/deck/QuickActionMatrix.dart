@@ -1,4 +1,5 @@
-import 'package:credd/Widgets/common/AmountText.dart';
+import 'package:credd/Widgets/common/CircleIconBadge.dart';
+import 'package:credd/Widgets/common/CtaFeedback.dart';
 import 'package:credd/Widgets/deck/DeckGeometryCalculator.dart';
 import 'package:flutter/material.dart';
 
@@ -77,15 +78,7 @@ class _ActionItem extends StatelessWidget {
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Container(
-            width: 44,
-            height: 44,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: const Color(0xFFE0E0E0)),
-            ),
-            child: Icon(icon, size: 20, color: Colors.black87),
-          ),
+          CircleIconBadge(icon: icon, diameter: 44, iconSize: 20),
           const SizedBox(height: 8),
           Text(
             label,

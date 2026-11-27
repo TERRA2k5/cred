@@ -21,18 +21,3 @@ class AmountText extends StatelessWidget {
     );
   }
 }
-
-void showCtaFeedback(BuildContext context, String label) {
-  ScaffoldMessenger.of(context)
-    ..hideCurrentSnackBar()
-    ..showSnackBar(
-      SnackBar(
-        content: Text(
-          '"$label" tapped',
-          style: const TextStyle(color: Colors.white),
-        ),
-        behavior: SnackBarBehavior.floating,
-        duration: const Duration(milliseconds: 1500),
-      ),
-    );
-}

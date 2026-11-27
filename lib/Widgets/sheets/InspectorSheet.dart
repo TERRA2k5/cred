@@ -1,4 +1,4 @@
-import 'package:credd/Widgets/common/AmountText.dart';
+import 'package:credd/Widgets/common/CtaFeedback.dart';
 import 'package:credd/Widgets/common/DashedLinePainter.dart';
 import 'package:credd/Widgets/sheets/InspectorDetailRow.dart';
 import 'package:credd/models/CreditCardModel.dart';

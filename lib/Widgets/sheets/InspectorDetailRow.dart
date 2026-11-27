@@ -1,4 +1,5 @@
-import 'package:credd/Widgets/common/AmountText.dart';
+import 'package:credd/Widgets/common/CircleIconBadge.dart';
+import 'package:credd/Widgets/common/CtaFeedback.dart';
 import 'package:flutter/material.dart';
 
 class InspectorDetailRow extends StatelessWidget {
@@ -21,15 +22,7 @@ class InspectorDetailRow extends StatelessWidget {
         height: 60,
         child: Row(
           children: [
-            Container(
-              width: 36,
-              height: 36,
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(color: const Color(0xFFE0E0E0)),
-              ),
-              child: Icon(icon, size: 17, color: Colors.black87),
-            ),
+            CircleIconBadge(icon: icon, diameter: 36, iconSize: 17),
             const SizedBox(width: 14),
             Expanded(
               child: Column(

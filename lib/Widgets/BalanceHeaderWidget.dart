@@ -2,6 +2,7 @@ import 'package:cached_network_image/cached_network_image.dart';
 import 'package:credd/Widgets/PromoBannerWidget.dart';
 import 'package:credd/Widgets/TopBarWidget.dart';
 import 'package:credd/Widgets/common/AmountText.dart';
+import 'package:credd/Widgets/common/CtaFeedback.dart';
 import 'package:credd/bloc/SDUIBloc.dart';
 import 'package:credd/bloc/SDUIEvent.dart';
 import 'package:credd/bloc/SDUIState.dart';
@@ -50,21 +51,6 @@ class _BalanceHeaderWidgetState extends State<BalanceHeaderWidget> {
     } catch (_) {
 
     }
-  }
-
-  void _showCtaFeedback(BuildContext context, String label) {
-    ScaffoldMessenger.of(context)
-      ..hideCurrentSnackBar()
-      ..showSnackBar(
-        SnackBar(
-          content: Text(
-            '"$label" tapped',
-            style: const TextStyle(color: Colors.white),
-          ),
-          behavior: SnackBarBehavior.floating,
-          duration: const Duration(milliseconds: 1500),
-        ),
-      );
   }
 
   @override
@@ -121,7 +107,7 @@ class _BalanceHeaderWidgetState extends State<BalanceHeaderWidget> {
                   child: _SummaryBlock(
                     key: ValueKey<StatementTab>(activeTab),
                     summary: summary,
-                    onCtaTap: () => _showCtaFeedback(context, summary.ctaTitle),
+                    onCtaTap: () => showCtaFeedback(context, summary.ctaTitle),
                   ),
                 ),
                 if (_header.offerProperties != null) ...[
