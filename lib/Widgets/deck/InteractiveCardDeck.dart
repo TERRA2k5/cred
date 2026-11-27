@@ -9,14 +9,21 @@ import 'package:credd/models/CardPillModel.dart';
 import 'package:credd/models/CreditCardModel.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
+
+typedef CardLongPressCallback = void Function(int index, Rect globalRect);
 
 class InteractiveCardDeck extends StatefulWidget {
   const InteractiveCardDeck({
     super.key,
     required this.cards,
+    this.onCardLongPress,
+    this.hiddenIndex,
   });
 
   final List<CreditCardModel> cards;
+  final CardLongPressCallback? onCardLongPress;
+  final int? hiddenIndex;
 
   @override
   State<InteractiveCardDeck> createState() => _InteractiveCardDeckState();
@@ -134,6 +141,24 @@ class _InteractiveCardDeckState extends State<InteractiveCardDeck>
     }
   }
 
+  void _onCardLongPress(int index) {
+    final geometry = _geometry;
+    if (geometry == null || _swipe.value > 0) return;
+    final offset = _scroll.hasClients ? _scroll.offset : 0.0;
+    if (index != 0 && geometry.expandProgress(offset) < 1) return;
+
+    final box = context.findRenderObject()! as RenderBox;
+    final slot = geometry.slotFor(index, offset);
+    final topLeft = box.localToGlobal(
+      Offset(DeckGeometryCalculator.horizontalPadding, slot.top),
+    );
+    HapticFeedback.mediumImpact();
+    widget.onCardLongPress?.call(
+      index,
+      topLeft & Size(geometry.cardWidth, geometry.cardHeight),
+    );
+  }
+
   bool _onScrollEnd(ScrollEndNotification notification) {
     final geometry = _geometry;
     if (geometry == null || !_scroll.hasClients) return false;
@@ -178,6 +203,7 @@ class _InteractiveCardDeckState extends State<InteractiveCardDeck>
                   geometry: geometry,
                   scroll: _scroll,
                   swipe: _swipe,
+                  hiddenIndex: widget.hiddenIndex,
                 ),
                 children: [
                   for (var i = 0; i < cards.length; i++)
@@ -185,6 +211,7 @@ class _InteractiveCardDeckState extends State<InteractiveCardDeck>
                       key: ValueKey('card_$i'),
                       child: GestureDetector(
                         onTap: () => _onCardTap(i),
+                        onLongPress: () => _onCardLongPress(i),
                         onHorizontalDragUpdate: i == 0 ? _onSwipeUpdate : null,
                         onHorizontalDragEnd: i == 0 ? _onSwipeEnd : null,
                         child: CreditCardItemView(card: cards[i]),

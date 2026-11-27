@@ -1,5 +1,6 @@
 import 'package:credd/Registry/SDUI_registry.dart';
 import 'package:credd/Widgets/deck/InteractiveCardDeck.dart';
+import 'package:credd/Widgets/sheets/CardInspectorModal.dart';
 import 'package:credd/bloc/SDUIBloc.dart';
 import 'package:credd/bloc/SDUIEvent.dart';
 import 'package:credd/bloc/SDUIState.dart';
@@ -52,7 +53,7 @@ class HomePage extends StatelessWidget {
                 ),
               );
             } else if (state is SDUILoaded) {
-              return _buildSDUILayout(state.items);
+              return _SDUIContentView(items: state.items);
             }
             return const SizedBox.shrink();
           },
@@ -60,12 +61,70 @@ class HomePage extends StatelessWidget {
       ),
     );
   }
+}
 
-  Widget _buildSDUILayout(List<SDUIModel> items) {
+class _SDUIContentView extends StatefulWidget {
+  const _SDUIContentView({required this.items});
+
+  final List<SDUIModel> items;
+
+  @override
+  State<_SDUIContentView> createState() => _SDUIContentViewState();
+}
+
+class _SDUIContentViewState extends State<_SDUIContentView>
+    with SingleTickerProviderStateMixin {
+  late final AnimationController _detail;
+  final _rootKey = GlobalKey();
+
+  int? _detailIndex;
+  Rect? _detailSource;
+
+  @override
+  void initState() {
+    super.initState();
+    _detail = AnimationController(
+      vsync: this,
+      duration: const Duration(milliseconds: 480),
+      reverseDuration: const Duration(milliseconds: 380),
+    );
+  }
+
+  @override
+  void dispose() {
+    _detail.dispose();
+    super.dispose();
+  }
+
+  void _openDetail(int index, Rect globalRect) {
+    final root = _rootKey.currentContext?.findRenderObject() as RenderBox?;
+    if (root == null) return;
+    setState(() {
+      _detailIndex = index;
+      _detailSource = root.globalToLocal(globalRect.topLeft) & globalRect.size;
+    });
+    _detail.forward(from: 0);
+  }
+
+  Future<void> _closeDetail() async {
+    if (_detailIndex == null || _detail.status == AnimationStatus.reverse) {
+      return;
+    }
+    await _detail.reverse();
+    if (mounted) {
+      setState(() {
+        _detailIndex = null;
+        _detailSource = null;
+      });
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final linearWidgets = <Widget>[];
     final cards = <CreditCardModel>[];
 
-    for (final item in items) {
+    for (final item in widget.items) {
       if (item.templateName == 'cm_card_instrument') {
         cards.add(
           CreditCardModel.fromJson(
@@ -78,16 +137,45 @@ class HomePage extends StatelessWidget {
       }
     }
 
-    return Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        ...linearWidgets,
-        Expanded(
-          child: cards.isEmpty
-              ? const Center(child: Text('No cards added yet'))
-              : InteractiveCardDeck(cards: cards),
-        ),
-      ],
+    final activeDetailIndex =
+        _detailIndex != null && _detailIndex! < cards.length
+            ? _detailIndex
+            : null;
+
+    return PopScope(
+      canPop: activeDetailIndex == null,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) _closeDetail();
+      },
+      child: Stack(
+        key: _rootKey,
+        children: [
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              ...linearWidgets,
+              Expanded(
+                child: cards.isEmpty
+                    ? const Center(child: Text('No cards added yet'))
+                    : InteractiveCardDeck(
+                        cards: cards,
+                        hiddenIndex: activeDetailIndex,
+                        onCardLongPress: _openDetail,
+                      ),
+              ),
+            ],
+          ),
+          if (activeDetailIndex != null && _detailSource != null)
+            Positioned.fill(
+              child: CardInspectorModal(
+                card: cards[activeDetailIndex],
+                sourceRect: _detailSource!,
+                animation: _detail,
+                onDismiss: _closeDetail,
+              ),
+            ),
+        ],
+      ),
     );
   }
 }
