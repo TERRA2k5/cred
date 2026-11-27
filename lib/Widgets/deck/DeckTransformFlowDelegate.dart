@@ -1,3 +1,4 @@
+import 'dart:math' as math;
 import 'dart:ui' show lerpDouble;
 
 import 'package:credd/Widgets/deck/DeckGeometryCalculator.dart';
@@ -8,6 +9,7 @@ class DeckTransformFlowDelegate extends FlowDelegate {
     required this.geometry,
     this.scroll,
     this.swipe = kAlwaysDismissedAnimation,
+    this.swipedIndex = 0,
     this.hiddenIndex,
   }) : super(
           repaint: Listenable.merge([
@@ -19,6 +21,7 @@ class DeckTransformFlowDelegate extends FlowDelegate {
   final DeckGeometryCalculator geometry;
   final ScrollController? scroll;
   final Animation<double> swipe;
+  final int swipedIndex;
   final int? hiddenIndex;
 
   static const _perspective = 0.0012;
@@ -49,17 +52,22 @@ class DeckTransformFlowDelegate extends FlowDelegate {
         currentScroll != null && currentScroll.hasClients ? currentScroll.offset : 0.0;
     final swipeValue = swipe.value;
     final progress = geometry.expandProgress(offset);
-    final deckShift = swipeValue * geometry.swipeDeckShift * (1 - progress);
+    final activeSwipeIndex = n > 0 ? swipedIndex.clamp(0, n - 1) : 0;
+    final swipedSlot = n > 0 ? geometry.slotFor(activeSwipeIndex, offset) : null;
+    final collapsedDeckShift = swipeValue * geometry.swipeDeckShift * (1 - progress);
+    final expandedShift = swipeValue *
+        math.max(0.0, geometry.gridHeight + 12 - geometry.itemExtent) *
+        progress;
 
     // Paint the action grid first so it always sits behind the cards.
-    if (swipeValue > 0 && context.childCount > 2 * n) {
+    if (swipeValue > 0 && swipedSlot != null && context.childCount > 2 * n) {
       final opacity = ((swipeValue - 0.35) / 0.65).clamp(0.0, 1.0);
       if (opacity > 0) {
         context.paintChild(
           2 * n,
           transform: Matrix4.translationValues(
             geometry.gridLeft,
-            DeckGeometryCalculator.topPadding + offset,
+            swipedSlot.top + offset,
             0,
           ),
           opacity: opacity,
@@ -72,20 +80,21 @@ class DeckTransformFlowDelegate extends FlowDelegate {
       if (i == hiddenIndex) continue;
       final slot = geometry.slotFor(i, offset);
       if (slot.opacity <= 0) continue;
-      final top = slot.top + offset + (i == 0 ? 0 : deckShift);
-      final transform = i == 0 && swipeValue > 0
+      final extraShift = i > activeSwipeIndex ? collapsedDeckShift + expandedShift : 0.0;
+      final top = slot.top + offset + extraShift;
+      final transform = i == activeSwipeIndex && swipeValue > 0
           ? _swipeTransform(top, swipeValue)
           : _slotTransform(top, slot.scale);
 
       // Paint pill before its card so the flip transition slides behind the card.
       final pillOpacity =
-          geometry.pillOpacity(i, offset) * (i == 0 ? 1 - swipeValue : 1);
+          geometry.pillOpacity(i, offset) * (i == activeSwipeIndex ? 1 - swipeValue : 1);
       if (pillOpacity > 0) {
         context.paintChild(
           n + i,
           transform: Matrix4.translationValues(
             DeckGeometryCalculator.horizontalPadding,
-            slot.top + offset + geometry.cardHeight,
+            top + geometry.cardHeight,
             0,
           ),
           opacity: pillOpacity,
@@ -121,6 +130,7 @@ class DeckTransformFlowDelegate extends FlowDelegate {
   @override
   bool shouldRepaint(DeckTransformFlowDelegate oldDelegate) =>
       oldDelegate.geometry != geometry ||
+      oldDelegate.swipedIndex != swipedIndex ||
       oldDelegate.hiddenIndex != hiddenIndex ||
       oldDelegate.scroll != scroll ||
       oldDelegate.swipe != swipe;

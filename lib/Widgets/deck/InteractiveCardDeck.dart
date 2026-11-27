@@ -48,8 +48,16 @@ class _InteractiveCardDeckState extends State<InteractiveCardDeck>
   Timer? _pillTimer;
   DeckGeometryCalculator? _geometry;
   bool _swipeOpen = false;
+  int _swipedIndex = 0;
 
   bool get _atRest => !_scroll.hasClients || _scroll.offset <= 0;
+
+  bool _canSwipe(int index) {
+    final geometry = _geometry;
+    if (geometry == null) return false;
+    if (_atRest) return index == 0;
+    return geometry.expandProgress(_scroll.offset) >= 1;
+  }
 
   @override
   void initState() {
@@ -63,6 +71,8 @@ class _InteractiveCardDeckState extends State<InteractiveCardDeck>
     if (!listEquals(widget.cards, oldWidget.cards)) {
       _pillStep.value = 0;
       _pillFlip.value = 1.0;
+      _swipedIndex = 0;
+      _swipe.value = 0.0;
       _scheduleNextPill();
     }
   }
@@ -113,18 +123,33 @@ class _InteractiveCardDeckState extends State<InteractiveCardDeck>
     }
   }
 
-  void _onSwipeUpdate(DragUpdateDetails details) {
+  void _onSwipeStart(int index, DragStartDetails details) {
+    if (!_canSwipe(index)) return;
+    if (_swipe.value > 0 && _swipedIndex != index) return;
+    if (_swipedIndex != index) {
+      setState(() {
+        _swipedIndex = index;
+      });
+    }
+  }
+
+  void _onSwipeUpdate(int index, DragUpdateDetails details) {
     final geometry = _geometry;
-    if (geometry == null || !_atRest) return;
+    if (geometry == null || !_canSwipe(index) || _swipedIndex != index) return;
     _swipe.value -= (details.primaryDelta ?? 0) / (geometry.cardWidth * 0.7);
   }
 
-  void _onSwipeEnd(DragEndDetails details) {
-    if (!_atRest) return;
+  void _onSwipeEnd(int index, DragEndDetails details) {
+    if (!_canSwipe(index) || _swipedIndex != index) return;
     final velocity = details.primaryVelocity ?? 0;
     final open =
         velocity < -300 || (velocity.abs() <= 300 && _swipe.value > 0.4);
     _settleSwipe(open: open);
+  }
+
+  void _onSwipeCancel(int index) {
+    if (_swipedIndex != index || _swipe.value <= 0 || _swipe.value >= 1) return;
+    _settleSwipe(open: _swipe.value > 0.4);
   }
 
   void _onCardTap(int index) {
@@ -203,6 +228,7 @@ class _InteractiveCardDeckState extends State<InteractiveCardDeck>
                   geometry: geometry,
                   scroll: _scroll,
                   swipe: _swipe,
+                  swipedIndex: _swipedIndex,
                   hiddenIndex: widget.hiddenIndex,
                 ),
                 children: [
@@ -212,8 +238,10 @@ class _InteractiveCardDeckState extends State<InteractiveCardDeck>
                       child: GestureDetector(
                         onTap: () => _onCardTap(i),
                         onLongPress: () => _onCardLongPress(i),
-                        onHorizontalDragUpdate: i == 0 ? _onSwipeUpdate : null,
-                        onHorizontalDragEnd: i == 0 ? _onSwipeEnd : null,
+                        onHorizontalDragStart: (d) => _onSwipeStart(i, d),
+                        onHorizontalDragUpdate: (d) => _onSwipeUpdate(i, d),
+                        onHorizontalDragEnd: (d) => _onSwipeEnd(i, d),
+                        onHorizontalDragCancel: () => _onSwipeCancel(i),
                         child: CreditCardItemView(card: cards[i]),
                       ),
                     ),
